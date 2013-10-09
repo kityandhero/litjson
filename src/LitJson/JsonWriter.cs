@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -20,6 +21,7 @@ namespace LitJson
 {
     internal enum Condition
     {
+        InDataTable,
         InArray,
         InObject,
         NotAProperty,
@@ -342,6 +344,16 @@ namespace LitJson
             context.ExpectingValue = false;
         }
 
+        public void Write(DataTable dataTable,bool IsDataTable)
+        {
+            DoValidation(Condition.InDataTable);
+            PutNewline();
+
+            Put(DataTableToJson(dataTable));
+
+            context.ExpectingValue = false;
+        }
+
         public void Write (long number)
         {
             DoValidation (Condition.Value);
@@ -459,5 +471,49 @@ namespace LitJson
 
             context.ExpectingValue = true;
         }
+
+        #region Json-DataTable
+
+        public static string DataTableToJson(DataTable dt)
+        {
+            var jsonString = new StringBuilder();
+            jsonString.Append("[");
+            var colCount = dt.Columns.Count;
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+
+                jsonString.Append("{");
+
+                for (int j = 0; j < colCount; j++)
+                {
+                    var col = dt.Columns[j];
+                    var value = dt.Rows[i][j].ToString();
+                    value = (value == "False" || value == "True" ? value.ToLower() : value);
+                    if (j < colCount - 1)
+                    {
+                        jsonString.Append("\"" + col.ColumnName + "\":\"" +
+                                          value + "\",");
+                    }
+                    else if (j == colCount - 1)
+                    {
+                        jsonString.Append("\"" + col.ColumnName + "\":\"" +
+                                          value + "\"");
+                    }
+                }
+                /*end Of String*/
+                if (i == dt.Rows.Count - 1)
+                {
+                    jsonString.Append("}");
+                }
+                else
+                {
+                    jsonString.Append("},");
+                }
+            }
+            jsonString.Append("]");
+            return jsonString.ToString();
+        }
+
+        #endregion
     }
 }

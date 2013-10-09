@@ -12,9 +12,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Text;
 
 
 namespace LitJson
@@ -750,6 +752,12 @@ namespace LitJson
                 return;
             }
 
+            if (obj is DataTable)
+            {
+                writer.Write(obj as DataTable,true);
+                return;
+            }
+
             if (obj is IDictionary) {
                 writer.WriteObjectStart ();
                 foreach (DictionaryEntry entry in (IDictionary) obj) {
@@ -819,7 +827,6 @@ namespace LitJson
             writer.WriteObjectEnd ();
         }
         #endregion
-
 
         public static string ToJson (object obj)
         {
